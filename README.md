@@ -2,6 +2,14 @@
 
 A full-stack task management application built with React, Express, and Supabase. Features a Kanban board interface for organizing tasks with drag-and-drop functionality, user authentication, and real-time task updates.
 
+## 🌐 Live Demo
+
+**Deployed Application:** [https://task-manager-frontend-40li.onrender.com](https://task-manager-frontend-40li.onrender.com)
+
+## 🎥 Demo Video
+
+**Demo Video Link:https://drive.google.com/file/d/1ag_EAUuKW9CFWtndqI7iie-jjiyFPm4W/view?usp=drive_link** 
+
 ## 🚀 Features
 
 - **User Authentication**: Secure login and signup using Supabase Auth
