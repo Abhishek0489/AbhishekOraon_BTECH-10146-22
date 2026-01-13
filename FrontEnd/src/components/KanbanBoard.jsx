@@ -40,6 +40,16 @@ const KanbanBoard = () => {
     fetchTasks();
   }, []);
 
+  // Listen for storage events to refresh when tasks are created elsewhere
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchTasks();
+    };
+    
+    window.addEventListener('taskCreated', handleStorageChange);
+    return () => window.removeEventListener('taskCreated', handleStorageChange);
+  }, []);
+
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -53,6 +63,49 @@ const KanbanBoard = () => {
       setError('Failed to load tasks. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    // Find the task and its column
+    let taskToDelete = null;
+    let columnId = null;
+    
+    for (const [colId, taskList] of Object.entries(tasks)) {
+      const task = taskList.find(t => t.id === taskId);
+      if (task) {
+        taskToDelete = task;
+        columnId = colId;
+        break;
+      }
+    }
+
+    if (!taskToDelete || !columnId) {
+      console.error('Task not found');
+      return;
+    }
+
+    // Store original state for potential revert
+    const originalTasks = JSON.parse(JSON.stringify(tasks));
+
+    // Optimistically remove task from UI
+    const updatedTasks = {
+      ...tasks,
+      [columnId]: tasks[columnId].filter(t => t.id !== taskId)
+    };
+    setTasks(updatedTasks);
+
+    // Call API to delete task
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      // Success - state is already updated optimistically
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      // Revert to original state on error
+      setTasks(originalTasks);
+      setError('Failed to delete task. Please try again.');
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -214,7 +267,7 @@ const KanbanBoard = () => {
                                   : ''
                               }`}
                             >
-                              <TaskCard task={task} />
+                              <TaskCard task={task} onDelete={handleDeleteTask} />
                             </div>
                           )}
                         </Draggable>

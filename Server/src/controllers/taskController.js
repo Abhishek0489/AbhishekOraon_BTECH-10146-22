@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient.js';
+import { getAuthenticatedSupabase } from '../utils/getAuthenticatedSupabase.js';
 
 /**
  * Create a new task
@@ -35,8 +35,11 @@ export const createTask = async (req, res) => {
       due_date: due_date || null
     };
 
-    // Insert task into database
-    const { data, error } = await supabase
+    // Create authenticated Supabase client with user's token
+    const authenticatedSupabase = getAuthenticatedSupabase(req.accessToken);
+
+    // Insert task into database using authenticated client
+    const { data, error } = await authenticatedSupabase
       .from('tasks')
       .insert([taskData])
       .select()
@@ -73,8 +76,11 @@ export const getTasks = async (req, res) => {
     const user_id = req.user.id; // From auth middleware
     const { status } = req.query;
 
+    // Create authenticated Supabase client with user's token
+    const authenticatedSupabase = getAuthenticatedSupabase(req.accessToken);
+
     // Build query
-    let query = supabase
+    let query = authenticatedSupabase
       .from('tasks')
       .select('*')
       .eq('user_id', user_id)
@@ -160,8 +166,11 @@ export const updateTask = async (req, res) => {
       });
     }
 
+    // Create authenticated Supabase client with user's token
+    const authenticatedSupabase = getAuthenticatedSupabase(req.accessToken);
+
     // Update task (RLS ensures user can only update their own tasks)
-    const { data, error } = await supabase
+    const { data, error } = await authenticatedSupabase
       .from('tasks')
       .update(updateData)
       .eq('id', id)
@@ -216,8 +225,11 @@ export const deleteTask = async (req, res) => {
       });
     }
 
+    // Create authenticated Supabase client with user's token
+    const authenticatedSupabase = getAuthenticatedSupabase(req.accessToken);
+
     // Delete task (RLS ensures user can only delete their own tasks)
-    const { data, error } = await supabase
+    const { data, error } = await authenticatedSupabase
       .from('tasks')
       .delete()
       .eq('id', id)

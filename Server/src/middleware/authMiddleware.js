@@ -45,8 +45,9 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Attach user to request object
+    // Attach user and token to request object
     req.user = user;
+    req.accessToken = token; // Store token for authenticated Supabase client
 
     // Continue to next middleware/route handler
     next();
