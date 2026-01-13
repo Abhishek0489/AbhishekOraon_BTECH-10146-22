@@ -20,8 +20,13 @@ SUPABASE_KEY=your_supabase_anon_key_here
 # This is optional but required if you want to use the DELETE /api/user endpoint
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
-# Server Configuration (optional)
+# Server Configuration
 PORT=5000
+
+# Frontend URL (for CORS - required in production)
+# For production: https://your-frontend-url.onrender.com
+# Leave empty or use '*' for development (allows all origins)
+FRONTEND_URL=https://task-manager-frontend-40li.onrender.com
 ```
 
 ## Steps to get your Supabase credentials:

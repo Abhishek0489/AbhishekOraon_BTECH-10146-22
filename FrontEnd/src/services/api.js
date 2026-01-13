@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { supabase } from '../config/supabaseClient.js';
 
+// Get API URL from environment variable or fallback to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 // Create Axios instance pointing to backend API
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: `${API_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },

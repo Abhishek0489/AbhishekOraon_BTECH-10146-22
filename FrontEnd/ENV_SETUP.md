@@ -11,6 +11,11 @@ VITE_SUPABASE_URL=your_supabase_project_url_here
 # Your Supabase anon/public key
 # Found in: Supabase Dashboard > Settings > API > Project API keys > anon public
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Backend API URL
+# For local development: http://localhost:5000
+# For production: https://your-backend-url.onrender.com (or your deployed backend URL)
+VITE_API_URL=http://localhost:5000
 ```
 
 ## Steps to get your Supabase credentials:
