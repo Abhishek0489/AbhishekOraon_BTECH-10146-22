@@ -1,61 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from './TaskCard.jsx';
+import api from '../services/api.js';
 
-// Mock data for testing
-const initialTasks = {
-  pending: [
-    {
-      id: '1',
-      title: 'Design user interface',
-      description: 'Create wireframes and mockups for the dashboard',
-      status: 'pending',
-      due_date: '2024-01-20'
-    },
-    {
-      id: '2',
-      title: 'Set up database schema',
-      description: 'Design and implement the database structure',
-      status: 'pending',
-      due_date: '2024-01-18'
-    },
-    {
-      id: '3',
-      title: 'Write API documentation',
-      description: 'Document all API endpoints and request/response formats',
-      status: 'pending',
-      due_date: null
+// Helper function to organize tasks by status
+const organizeTasksByStatus = (tasks) => {
+  const organized = {
+    pending: [],
+    'in-progress': [],
+    completed: []
+  };
+
+  tasks.forEach((task) => {
+    if (organized[task.status]) {
+      organized[task.status].push(task);
     }
-  ],
-  'in-progress': [
-    {
-      id: '4',
-      title: 'Implement authentication',
-      description: 'Set up user authentication and authorization',
-      status: 'in-progress',
-      due_date: '2024-01-22'
-    },
-    {
-      id: '5',
-      title: 'Build task management features',
-      description: 'Create CRUD operations for tasks',
-      status: 'in-progress',
-      due_date: '2024-01-25'
-    }
-  ],
-  completed: [
-    {
-      id: '6',
-      title: 'Project setup',
-      description: 'Initialize project structure and install dependencies',
-      status: 'completed',
-      due_date: '2024-01-15'
-    }
-  ]
+  });
+
+  return organized;
 };
 
 const KanbanBoard = () => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState({
+    pending: [],
+    'in-progress': [],
+    completed: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const columns = [
     { id: 'pending', title: 'Pending', color: 'bg-yellow-50 border-yellow-200' },
@@ -63,7 +35,28 @@ const KanbanBoard = () => {
     { id: 'completed', title: 'Completed', color: 'bg-green-50 border-green-200' }
   ];
 
-  const onDragEnd = (result) => {
+  // Fetch tasks from API
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get('/tasks');
+      const tasksArray = response.data.tasks || [];
+      const organizedTasks = organizeTasksByStatus(tasksArray);
+      setTasks(organizedTasks);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError('Failed to load tasks. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
     // If dropped outside a droppable area
@@ -83,18 +76,27 @@ const KanbanBoard = () => {
     const destColumn = tasks[destination.droppableId];
     const task = sourceColumn.find((t) => t.id === draggableId);
 
-    // Moving within the same column
-    if (source.droppableId === destination.droppableId) {
-      const newTasks = Array.from(sourceColumn);
-      newTasks.splice(source.index, 1);
-      newTasks.splice(destination.index, 0, task);
+    if (!task) {
+      return;
+    }
 
-      setTasks({
+    // Store original state for potential revert
+    const originalTasks = JSON.parse(JSON.stringify(tasks));
+
+    // Optimistically update the UI
+    let newTasks;
+    if (source.droppableId === destination.droppableId) {
+      // Moving within the same column (reordering)
+      const newColumnTasks = Array.from(sourceColumn);
+      newColumnTasks.splice(source.index, 1);
+      newColumnTasks.splice(destination.index, 0, task);
+
+      newTasks = {
         ...tasks,
-        [source.droppableId]: newTasks
-      });
+        [source.droppableId]: newColumnTasks
+      };
     } else {
-      // Moving to a different column
+      // Moving to a different column (status change)
       const newSourceTasks = Array.from(sourceColumn);
       newSourceTasks.splice(source.index, 1);
 
@@ -104,17 +106,70 @@ const KanbanBoard = () => {
         status: destination.droppableId
       });
 
-      setTasks({
+      newTasks = {
         ...tasks,
         [source.droppableId]: newSourceTasks,
         [destination.droppableId]: newDestTasks
-      });
+      };
+    }
+
+    // Optimistically update UI
+    setTasks(newTasks);
+
+    // Only call API if status changed (different column)
+    if (source.droppableId !== destination.droppableId) {
+      try {
+        await api.put(`/tasks/${task.id}`, {
+          status: destination.droppableId
+        });
+        // Success - state is already updated optimistically
+      } catch (err) {
+        console.error('Error updating task status:', err);
+        // Revert to original state on error
+        setTasks(originalTasks);
+        setError('Failed to update task status. Please try again.');
+        // Clear error after 3 seconds
+        setTimeout(() => setError(null), 3000);
+      }
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-gray-600">Loading tasks...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && tasks.pending.length === 0 && tasks['in-progress'].length === 0 && tasks.completed.length === 0) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={fetchTasks}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Task Board</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Task Board</h2>
+        {error && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2">
+            <p className="text-yellow-800 text-sm">{error}</p>
+          </div>
+        )}
+      </div>
       
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -141,28 +196,34 @@ const KanbanBoard = () => {
                       snapshot.isDraggingOver ? 'bg-opacity-50' : ''
                     }`}
                   >
-                    {tasks[column.id]?.map((task, index) => (
-                      <Draggable
-                        key={task.id}
-                        draggableId={task.id}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`${
-                              snapshot.isDragging
-                                ? 'opacity-50 rotate-2'
-                                : ''
-                            }`}
-                          >
-                            <TaskCard task={task} />
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
+                    {tasks[column.id]?.length > 0 ? (
+                      tasks[column.id].map((task, index) => (
+                        <Draggable
+                          key={task.id}
+                          draggableId={task.id}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`${
+                                snapshot.isDragging
+                                  ? 'opacity-50 rotate-2'
+                                  : ''
+                              }`}
+                            >
+                              <TaskCard task={task} />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-400 text-sm py-8">
+                        No tasks
+                      </div>
+                    )}
                     {provided.placeholder}
                   </div>
                 )}
