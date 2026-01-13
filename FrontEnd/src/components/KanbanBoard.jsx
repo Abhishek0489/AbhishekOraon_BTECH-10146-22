@@ -28,6 +28,7 @@ const KanbanBoard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const columns = [
     { id: 'pending', title: 'Pending', color: 'bg-yellow-50 border-yellow-200' },
@@ -35,26 +36,33 @@ const KanbanBoard = () => {
     { id: 'completed', title: 'Completed', color: 'bg-green-50 border-green-200' }
   ];
 
-  // Fetch tasks from API
+  // Fetch tasks from API when component mounts or filter changes
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchTasks(statusFilter);
+  }, [statusFilter]);
 
   // Listen for storage events to refresh when tasks are created elsewhere
   useEffect(() => {
     const handleStorageChange = () => {
-      fetchTasks();
+      fetchTasks(statusFilter);
     };
     
     window.addEventListener('taskCreated', handleStorageChange);
     return () => window.removeEventListener('taskCreated', handleStorageChange);
-  }, []);
+  }, [statusFilter]);
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (status = 'all') => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/tasks');
+      
+      // Build API URL with status query parameter if not 'all'
+      let url = '/tasks';
+      if (status && status !== 'all') {
+        url += `?status=${status}`;
+      }
+      
+      const response = await api.get(url);
       const tasksArray = response.data.tasks || [];
       const organizedTasks = organizeTasksByStatus(tasksArray);
       setTasks(organizedTasks);
@@ -64,6 +72,12 @@ const KanbanBoard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterChange = (e) => {
+    const newFilter = e.target.value;
+    setStatusFilter(newFilter);
+    // fetchTasks will be called automatically via useEffect
   };
 
   const handleDeleteTask = async (taskId) => {
@@ -203,7 +217,7 @@ const KanbanBoard = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{error}</p>
           <button
-            onClick={fetchTasks}
+            onClick={() => fetchTasks(statusFilter)}
             className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Retry
@@ -222,6 +236,24 @@ const KanbanBoard = () => {
             <p className="text-yellow-800 text-sm">{error}</p>
           </div>
         )}
+      </div>
+
+      {/* Filter Dropdown */}
+      <div className="mb-6">
+        <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-2">
+          Filter by Status
+        </label>
+        <select
+          id="statusFilter"
+          value={statusFilter}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900"
+        >
+          <option value="all">All</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
       </div>
       
       <DragDropContext onDragEnd={onDragEnd}>
