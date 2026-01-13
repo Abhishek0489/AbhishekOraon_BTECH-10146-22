@@ -1,0 +1,158 @@
+# =====================================================
+# Node Modules (most important - ignore in all directories)
+# =====================================================
+node_modules/
+**/node_modules/
+
+# =====================================================
+# Environment Variables
+# =====================================================
+.env
+.env.local
+.env.*.local
+*.env
+
+# =====================================================
+# Node.js
+# =====================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Package manager lock files (optional - uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# =====================================================
+# Build & Distribution
+# =====================================================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
+
+# =====================================================
+# Logs
+# =====================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =====================================================
+# IDE & Editor Files
+# =====================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# =====================================================
+# OS Files
+# =====================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =====================================================
+# Testing & Coverage
+# =====================================================
+coverage/
+*.lcov
+.nyc_output/
+.coverage/
+htmlcov/
+.pytest_cache/
+.tox/
+
+# =====================================================
+# Temporary Files
+# =====================================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+.cache/
+
+# =====================================================
+# Database
+# =====================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# =====================================================
+# Supabase (if using local development)
+# =====================================================
+.supabase/
