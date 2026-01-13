@@ -20,7 +20,7 @@ Before starting, make sure you have:
    ```env
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_KEY=your_anon_key_here
-   PORT=3000
+   PORT=5000
    ```
 
 #### Frontend (FrontEnd)
@@ -57,7 +57,7 @@ npm run dev
 
 **Expected Output:**
 ```
-🚀 Server is running on http://localhost:3000
+🚀 Server is running on http://localhost:5000
 📝 Environment: development
 ```
 
@@ -117,7 +117,7 @@ npm run dev
    ```javascript
    // First, get your auth token from Supabase
    // Then test API call
-   fetch('http://localhost:3000/api/tasks', {
+   fetch('http://localhost:5000/api/tasks', {
      method: 'POST',
      headers: {
        'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ npm run dev
    ```
 
 **Option B: Using Postman/Thunder Client**
-1. Create a new POST request to `http://localhost:3000/api/tasks`
+1. Create a new POST request to `http://localhost:5000/api/tasks`
 2. Add Header: `Authorization: Bearer YOUR_TOKEN`
 3. Add Body (JSON):
    ```json
@@ -181,7 +181,7 @@ npm run dev
 **Using API:**
 ```bash
 # Replace TASK_ID and YOUR_TOKEN with actual values
-curl -X PUT http://localhost:3000/api/tasks/TASK_ID \
+curl -X PUT http://localhost:5000/api/tasks/TASK_ID \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"status": "in-progress"}'
@@ -196,7 +196,7 @@ curl -X PUT http://localhost:3000/api/tasks/TASK_ID \
 **Using API:**
 ```bash
 # Replace TASK_ID and YOUR_TOKEN with actual values
-curl -X DELETE http://localhost:3000/api/tasks/TASK_ID \
+curl -X DELETE http://localhost:5000/api/tasks/TASK_ID \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -252,7 +252,7 @@ curl -X DELETE http://localhost:3000/api/tasks/TASK_ID \
 ### API Connection Issues
 
 **Error: Network Error / CORS Error**
-- ✅ Verify backend server is running on port 3000
+- ✅ Verify backend server is running on port 5000
 - ✅ Check `FrontEnd/src/services/api.js` has correct baseURL
 - ✅ Ensure CORS is enabled in backend (it should be)
 
@@ -282,7 +282,7 @@ Run this in your browser console (after logging in) to test all endpoints:
 ```javascript
 // Get your token first (check localStorage or Supabase session)
 const token = 'YOUR_TOKEN_HERE';
-const baseURL = 'http://localhost:3000/api';
+const baseURL = 'http://localhost:5000/api';
 
 // Test GET tasks
 fetch(`${baseURL}/tasks`, {

@@ -114,7 +114,7 @@ cd TaskManagSys
    SUPABASE_KEY=your_supabase_anon_key_here
    
    # Server Configuration (optional)
-   PORT=3000
+   PORT=5000
    ```
 
 4. Get your Supabase credentials:
@@ -134,7 +134,7 @@ cd TaskManagSys
    npm run dev
    ```
 
-   The server will run on `http://localhost:3000` (or the port specified in `.env`)
+   The server will run on `http://localhost:5000` (or the port specified in `.env`)
 
 ### 4. Set Up Frontend (FrontEnd)
 
@@ -177,7 +177,7 @@ cd TaskManagSys
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your_anon_key_here
-PORT=3000
+PORT=5000
 ```
 
 ### FrontEnd `.env` Example

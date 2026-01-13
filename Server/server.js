@@ -31,8 +31,8 @@ app.use('/api/tasks', authMiddleware, taskRoutes);
 // User routes - protected by authMiddleware
 app.use('/api/user', authMiddleware, userRoutes);
 
-// Get port from environment or default to 3000
-const PORT = process.env.PORT || 3000;
+// Get port from environment or default to 5000
+const PORT = process.env.PORT || 5000;
 
 // Start server
 app.listen(PORT, () => {

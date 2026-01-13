@@ -35,10 +35,7 @@ export const updateProfile = async (req, res) => {
     const user_id = req.user.id;
     const accessToken = req.accessToken;
 
-    // Create authenticated Supabase client with user's token
-    const authenticatedSupabase = getAuthenticatedSupabase(accessToken);
-
-    // Build update object
+    // Build update object for Supabase REST API
     const updateData = {};
 
     // Update email if provided
@@ -54,14 +51,25 @@ export const updateProfile = async (req, res) => {
 
     // Update user metadata (full_name, etc.)
     if (full_name !== undefined || metadata !== undefined) {
-      const currentUser = await authenticatedSupabase.auth.getUser();
-      const currentMetadata = currentUser.data.user?.user_metadata || {};
-
-      updateData.data = {
+      // Get current user metadata first to merge
+      const authenticatedSupabase = getAuthenticatedSupabase(accessToken);
+      const { data: { user: currentUser }, error: getUserError } = await authenticatedSupabase.auth.getUser(accessToken);
+      
+      if (getUserError) {
+        console.error('Error getting current user:', getUserError);
+        // Continue with empty metadata if we can't fetch it
+      }
+      
+      const currentMetadata = currentUser?.user_metadata || {};
+      
+      // Build metadata object - merge with existing
+      const metadataUpdate = {
         ...currentMetadata,
         ...(full_name !== undefined && { full_name: full_name.trim() }),
         ...(metadata && typeof metadata === 'object' ? metadata : {})
       };
+
+      updateData.data = metadataUpdate;
     }
 
     // Check if there's anything to update
@@ -72,22 +80,46 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Update user profile
-    const { data, error } = await authenticatedSupabase.auth.updateUser(updateData);
+    // Use Supabase REST API directly with user's access token
+    // This doesn't require the service role key - uses the user's own token
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_KEY;
 
-    if (error) {
-      console.error('Error updating profile:', error);
+    try {
+      // Call Supabase REST API for user update using Node's built-in fetch
+      const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error updating profile via REST API:', result);
+        return res.status(response.status || 500).json({
+          error: 'Database Error',
+          message: 'Failed to update profile',
+          details: result.error_description || result.message || 'Unknown error'
+        });
+      }
+
+      return res.status(200).json({
+        message: 'Profile updated successfully',
+        user: result
+      });
+    } catch (apiError) {
+      console.error('Error updating profile via REST API:', apiError);
       return res.status(500).json({
-        error: 'Database Error',
+        error: 'Internal Server Error',
         message: 'Failed to update profile',
-        details: error.message
+        details: apiError.message
       });
     }
-
-    return res.status(200).json({
-      message: 'Profile updated successfully',
-      user: data.user
-    });
   } catch (error) {
     console.error('Error in updateProfile:', error);
     return res.status(500).json({

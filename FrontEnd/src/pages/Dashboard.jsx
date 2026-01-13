@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../config/supabaseClient.js';
 import KanbanBoard from '../components/KanbanBoard.jsx';
 import api from '../services/api.js';
@@ -112,6 +112,12 @@ const Dashboard = () => {
               {user && (
                 <span className="text-sm text-gray-700">{user.email}</span>
               )}
+              <Link
+                to="/profile"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Profile
+              </Link>
               <button
                 onClick={() => setShowTaskForm(true)}
                 className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
