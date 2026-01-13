@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import taskRoutes from './src/routes/taskRoutes.js';
+import { authMiddleware } from './src/middleware/authMiddleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +23,9 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Task routes - protected by authMiddleware
+app.use('/api/tasks', authMiddleware, taskRoutes);
 
 // Get port from environment or default to 3000
 const PORT = process.env.PORT || 3000;
